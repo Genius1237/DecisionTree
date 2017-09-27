@@ -4,6 +4,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <set>
 
 class DecisionTreeNode {
 	public:
@@ -81,5 +82,8 @@ class DecisionTree {
 		std::unordered_map<std::string, std::vector<std::string>> pos_vals;
 		DecisionTreeNode *root;
 };
+
+std::vector<std::vector<std::string> > readData();
+std::set <std::string> readTargetVal();
 
 #endif
