@@ -1,5 +1,7 @@
 #include "decision_tree.h"
-
+#include <fstream>
+#include<bits/stdc++.h>
+#include <sstream>
 // --------------------- DecisionTree Class ---------------------------
 
 DecisionTreeNode::DecisionTreeNode() {
@@ -59,4 +61,26 @@ std::string Example::getTargetClass() {
 void DecisionTree::addAttrInfo(
 	std::string attrName, std::vector<std::string> attrVals) {
 	posVals[attrName] = attrVals;
+}
+
+std::vector<std::vector<std::string> > readData(){
+	std::string fileloc="../data/adult_data";
+	//std::string fileloc="../data/zoo.data";
+	std::ifstream fin(fileloc,std::ios::in);
+	std::vector<std::vector<std::string> > data;
+	while(!fin.eof()){
+		std::string s;
+		std::vector<std::string> att;
+		fin>>s;
+		std::stringstream str(s);
+		//std::cout<<s<<std::endl;
+		while(str)
+		{
+			std::string temp;
+			std::getline(str,temp,',');
+			att.push_back(temp);	
+		}
+		data.push_back(att);
+	}
+	return data;
 }

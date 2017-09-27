@@ -66,4 +66,6 @@ class DecisionTree {
 		std::unordered_map<std::string, std::vector<std::string>> posVals;
 };
 
+std::vector<std::vector<std::string> > readData();
+
 #endif
