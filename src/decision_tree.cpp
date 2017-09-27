@@ -98,6 +98,10 @@ void DecisionTree::addAttrInfo(
 	pos_vals[attr_name] = attr_vals;
 }
 
+void DecisionTree::addTargetValues(std::set<std::string> target_values) {
+	this -> target_values = target_values;
+}
+
 void DecisionTree::build(const std::vector<Example>& train_data) {
 	std::vector<std::string> all_attr;
 	for (auto it = pos_vals.begin(); it != pos_vals.end(); it++) {
@@ -199,7 +203,7 @@ void DecisionTree::build(std::vector<Example> train_data,
 
 double DecisionTree::infoGain(std::vector<Example> els, const std::string& attr_name){
 
-		std::set<std::string> target_val_set = readTargetVal();
+		std::set<std::string> target_val_set = target_values;
 		std::map< std::string,int > num_attr[num_target_val];
 
 		std::vector< std::string> temp_tar_val;
@@ -291,11 +295,7 @@ double DecisionTree::calcEntropy(const std::map< std::string, int>& els){
 }
 
 // -------------------- Data Extraction --------------------------------------
-
-std::vector<std::vector<std::string> > readData(){
-	int n=15;
-	std::string fileloc="../data/adult_data";
-	//std::string fileloc="../data/zoo.data";
+std::vector<std::vector<std::string> > Reader::readData(std::string fileloc, int n){
 	std::ifstream fin(fileloc,std::ios::in);
 	std::vector<std::vector<std::string> > data;
 	while(!fin.eof()){
@@ -303,22 +303,17 @@ std::vector<std::vector<std::string> > readData(){
 		std::vector<std::string> att;
 		fin>>s;
 		std::stringstream str(s);
-		//std::cout<<s<<std::endl;
 		for(int i=0;i<n;i++){
 			std::string temp;
 			std::getline(str,temp,',');
-			//std::cout<<temp<<"\n";
 			att.push_back(temp);
 		}
-		//std::cout<<att.size()<<"\n";
 		data.push_back(att);
 	}
 	return data;
 }
 
-std::set<std::string> readTargetVal(){
-	int n=15;
-	std::string fileloc="../data/adult_data";
+std::set<std::string> Reader::readTargetVal(std::string fileloc, int n){
 	std::ifstream fin(fileloc,std::ios::in);
 	std::set<std::string> att;
 	while(!fin.eof()){

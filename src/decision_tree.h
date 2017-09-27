@@ -71,6 +71,7 @@ class DecisionTree {
 	public:
 		void addAttrInfo(const std::string& attr_name,
 			const std::vector<std::string>& attr_vals);
+		void addTargetValues(std::set<std::string> target_values);
 		// all attributes' info must be added before this is called
 		void build(const std::vector<Example>& train_data);
 		void prune(const std::vector<Example>& validation_data);
@@ -87,9 +88,15 @@ class DecisionTree {
 		// If the attribute is continuous then value will be empty vector
 		std::unordered_map<std::string, std::vector<std::string> > pos_vals;
 		DecisionTreeNode *root;
+		std::set<std::string> target_values;
 };
 
-std::vector<std::vector<std::string> > readData();
-std::set <std::string> readTargetVal();
+class Reader {
+	public:
+		// file name and number of attributes
+		static std::vector<std::vector<std::string> > readData(std::string fileloc, int n);
+		static std::set <std::string> readTargetVal(std::string fileloc, int n);
+};
+
 
 #endif
