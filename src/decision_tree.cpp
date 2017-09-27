@@ -6,17 +6,32 @@ DecisionTreeNode::DecisionTreeNode() {
 	;
 }
 
-DecisionTreeNode::DecisionTreeNode(std::string attrName) {
-	this -> attrName = attrName;
+void DecisionTreeNode::setAttrName(std::string attr_name) {
+	this -> attr_name = attr_name;
 }
 
 std::string DecisionTreeNode::getAttrName() {
-	return attrName;
+	return attr_name;
 }
 
-DecisionTreeNode*& DecisionTreeNode::operator[](std::string attrVal) {
-	return child[attrVal];
+
+// --------------------- discAttrDecisionTreeNode Class ---------------------------
+discAttrDecisionTreeNode::discAttrDecisionTreeNode() {
+	is_cont = false;
 }
+
+DecisionTreeNode*& discAttrDecisionTreeNode::operator[](std::string attr_val) {
+	return child[attr_val];
+}
+
+
+// --------------------- contAttrDecisionTreeNode Class ---------------------------
+contAttrDecisionTreeNode::contAttrDecisionTreeNode() {
+	is_cont = true;
+}
+
+
+
 
 // --------------------- Instance Class ---------------------------
 
@@ -25,14 +40,14 @@ Instance::Instance() {
 }
 
 Instance::Instance(
-	std::vector<std::string> attrNames, std::vector<std::string> attrVals) {
-	for (int i = 0; i < attrNames.size(); i++) {
-		els[attrNames[i]] = attrVals[i];
+	std::vector<std::string> attr_names, std::vector<std::string> attr_vals) {
+	for (int i = 0; i < attr_names.size(); i++) {
+		els[attr_names[i]] = attr_vals[i];
 	}
 }
 
-std::string Instance::operator[](std::string attrName) {
-	return els[attrName];
+std::string Instance::operator[](std::string attr_name) {
+	return els[attr_name];
 }
 
 // --------------------- Example Class ---------------------------
@@ -42,10 +57,10 @@ Example::Example() {
 }
 
 Example::Example(
-	std::vector<std::string> attrNames, std::vector<std::string> attrVals,
+	std::vector<std::string> attr_names, std::vector<std::string> attr_vals,
 	std::string target_class) {
-	for (int i = 0; i < attrNames.size(); i++) {
-		els[attrNames[i]] = attrVals[i];
+	for (int i = 0; i < attr_names.size(); i++) {
+		els[attr_names[i]] = attr_vals[i];
 	}
 	this -> target_class = target_class;
 }
@@ -57,6 +72,11 @@ std::string Example::getTargetClass() {
 // --------------------- DecisionTree Class ---------------------------
 
 void DecisionTree::addAttrInfo(
-	std::string attrName, std::vector<std::string> attrVals) {
-	posVals[attrName] = attrVals;
+	std::string attr_name, std::vector<std::string> attr_vals) {
+	pos_vals[attr_name] = attr_vals;
+}
+
+void DecisionTree::build(std::vector<Example> train_data) {
+	
+	build(train_data, root, );
 }
