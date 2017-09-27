@@ -4,6 +4,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <set>
 
 class DecisionTreeNode {
 	public:
@@ -65,5 +66,8 @@ class DecisionTree {
 		// If the attribute is continuous then value will be empty vector
 		std::unordered_map<std::string, std::vector<std::string>> posVals;
 };
+
+std::vector<std::vector<std::string> > readData();
+std::set <std::string> readTargetVal();
 
 #endif
