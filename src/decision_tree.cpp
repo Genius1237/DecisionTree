@@ -7,7 +7,7 @@ DecisionTreeNode::DecisionTreeNode() {
 	;
 }
 
-void DecisionTreeNode::setAttrName(std::string attr_name) {
+void DecisionTreeNode::setAttrName(const std::string& attr_name) {
 	this -> attr_name = attr_name;
 }
 
@@ -18,21 +18,18 @@ std::string DecisionTreeNode::getAttrName() {
 
 // --------------------- discAttrDecisionTreeNode Class ---------------------------
 discAttrDecisionTreeNode::discAttrDecisionTreeNode() {
-	is_cont = false;
+	type = "discrete";
 }
 
-DecisionTreeNode*& discAttrDecisionTreeNode::operator[](std::string attr_val) {
+DecisionTreeNode*& discAttrDecisionTreeNode::operator[](const std::string& attr_val) {
 	return child[attr_val];
 }
 
 
 // --------------------- contAttrDecisionTreeNode Class ---------------------------
 contAttrDecisionTreeNode::contAttrDecisionTreeNode() {
-	is_cont = true;
+	type = "continous";
 }
-
-
-
 
 // --------------------- Instance Class ---------------------------
 
@@ -41,13 +38,13 @@ Instance::Instance() {
 }
 
 Instance::Instance(
-	std::vector<std::string> attr_names, std::vector<std::string> attr_vals) {
+	const std::vector<std::string>& attr_names, const std::vector<std::string>& attr_vals) {
 	for (int i = 0; i < attr_names.size(); i++) {
 		els[attr_names[i]] = attr_vals[i];
 	}
 }
 
-std::string Instance::operator[](std::string attr_name) {
+std::string Instance::operator[](const std::string& attr_name) {
 	return els[attr_name];
 }
 
@@ -58,8 +55,8 @@ Example::Example() {
 }
 
 Example::Example(
-	std::vector<std::string> attr_names, std::vector<std::string> attr_vals,
-	std::string target_class) {
+	const std::vector<std::string>& attr_names, const std::vector<std::string>& attr_vals,
+	const std::string& target_class) {
 	for (int i = 0; i < attr_names.size(); i++) {
 		els[attr_names[i]] = attr_vals[i];
 	}
@@ -73,12 +70,15 @@ std::string Example::getTargetClass() {
 // --------------------- DecisionTree Class ---------------------------
 
 void DecisionTree::addAttrInfo(
-	std::string attr_name, std::vector<std::string> attr_vals) {
+	const std::string& attr_name, const std::vector<std::string>& attr_vals) {
 	pos_vals[attr_name] = attr_vals;
 }
 
-void DecisionTree::build(std::vector<Example> train_data) {
+void DecisionTree::build(const std::vector<Example>& train_data) {
 	
+	for (auto it = pos_vals.begin(); it != pos_vals.end(); it++) {
+		;
+	}
 	build(train_data, root, );
 }
 

@@ -9,18 +9,18 @@
 class DecisionTreeNode {
 	public:
 		DecisionTreeNode();
-		void setAttrName(std::string attr_name);
+		void setAttrName(const std::string& attr_name);
 		std::string getAttrName();
 	protected:
 		std::string attr_name;
-		bool is_cont;
+		std::string type; // one of 'discrete', 'continuous' and 'leaf'
 };
 
 class discAttrDecisionTreeNode: public DecisionTreeNode {
 	public:
 		discAttrDecisionTreeNode();
 		// attr_val must be a possible value of attr_name
-		DecisionTreeNode*& operator[](std::string attr_val);
+		DecisionTreeNode*& operator[](const std::string& attr_val);
 	private:
 		std::unordered_map<std::string, DecisionTreeNode*> child;
 };
@@ -39,10 +39,10 @@ class Instance {
 
 		// Precondition: Size of 'attr_names' qual to size of 'attr_vals'
 		Instance(
-			std::vector<std::string> attr_names, std::vector<std::string> attr_vals);
+			const std::vector<std::string>& attr_names, const std::vector<std::string>& attr_vals);
 
 		// Used to access value of a particular attribute
-		std::string operator[](std::string attr_name);
+		std::string operator[](const std::string& attr_name);
 
 	protected:
 		std::unordered_map<std::string, std::string> els;
@@ -54,8 +54,8 @@ class Example: public Instance {
 
 		// Precondition: Size of 'attr_names' qual to size of 'attr_vals'
 		Example(
-			std::vector<std::string> attr_names, std::vector<std::string> attr_vals,
-			std::string target_class);
+			const std::vector<std::string>& attr_names, const std::vector<std::string>& attr_vals,
+			const std::string& target_class);
 
 		std::string getTargetClass();
 
@@ -65,17 +65,18 @@ class Example: public Instance {
 
 class DecisionTree {
 	public:
-		void addAttrInfo(std::string attr_name, std::vector<std::string> attr_vals);
+		void addAttrInfo(const std::string& attr_name, 
+			const std::vector<std::string>& attr_vals);
 		// all attributes' info must be added before this is called
-		void build(std::vector<Example> train_data);
-		void prune(std::vector<Example> validation_data);
-		double test(std::vector<Example> test_data);
+		void build(const std::vector<Example>& train_data);
+		void prune(const std::vector<Example>& validation_data);
+		double test(const std::vector<Example>& test_data);
 
 	private:
-		std::string classify(Instance inst);
-		void build(std::vector<Example> train_data, DecisionTreeNode*& p, 
-			std::vector<std::string> check_attr);
-		double infoGain(std::vector<Example> els, std::string attr_name);
+		std::string classify(const Instance& inst);
+		void build(const std::vector<Example>& train_data, DecisionTreeNode*& p, 
+			const std::vector<std::string>& check_attr);
+		double infoGain(const std::vector<Example> els, const std::string& attr_name);
 		// key is attribute
 		// value is vector of all possible values for that attribute
 		// If the attribute is continuous then value will be empty vector
