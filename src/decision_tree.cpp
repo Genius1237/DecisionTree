@@ -1,5 +1,5 @@
 #include "decision_tree.h"
-#include <fstream>	
+#include <fstream>
 #include <sstream>
 #include <algorithm>
 #include <cmath>
@@ -53,6 +53,7 @@ DecisionTreeNode*& ContAttrDecisionTreeNode::operator[](const double &attr_val) 
 
 void ContAttrDecisionTreeNode::setDividers(const std::vector<double> dividers) {
 	this -> dividers = dividers;
+	child.resize(dividers.size() + 1);
 }
 
 // --------------------- Instance Class ---------------------------
@@ -110,7 +111,7 @@ void DecisionTree::build(const std::vector<Example>& train_data) {
 	build(train_data, root, all_attr);
 }
 
-void DecisionTree::build(std::vector<Example> train_data, 
+void DecisionTree::build(std::vector<Example> train_data,
 	DecisionTreeNode*& p, std::vector<std::string> check_attr) {
 
 	// check if there is any training data. if not assign a target class randomly
@@ -126,7 +127,7 @@ void DecisionTree::build(std::vector<Example> train_data,
 	std::string target_class = train_data[0].getTargetClass();
 	for (int i = 1; i < train_data.size(); i++) {
 		if (train_data[i].getTargetClass() != target_class) {
-			leaf = false;		
+			leaf = false;
 			break;
 		}
 	}
@@ -140,7 +141,7 @@ void DecisionTree::build(std::vector<Example> train_data,
 		int max_index = 0;
 		std::vector<double> dividers;
 		bool is_cont;
-		
+
 		// find which attribute should be at the node
     for (int i = 0; i < check_attr.size(); i++) {
 			if (pos_vals[check_attr[i]].size() == 0) {
@@ -166,16 +167,12 @@ void DecisionTree::build(std::vector<Example> train_data,
 
     if (is_cont) {
       p = new ContAttrDecisionTreeNode;
-      p -> setType("continous");  
+      p -> setType("continous");
       p -> setAttrName(attr_name);
       check_attr.erase(check_attr.begin() + max_index);
-      
+
       ContAttrDecisionTreeNode *pp = static_cast<ContAttrDecisionTreeNode*>(p);
       pp -> setDividers(dividers);
-      (*pp)[0] = NULL;
-      for (int i = 1; i <= dividers.size(); i++) {
-        (*pp)[i] = NULL;
-      }
       for (int i = 0; i < train_data.size(); i++) {
         ;
       }
