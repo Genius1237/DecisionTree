@@ -43,10 +43,13 @@ class ContAttrDecisionTreeNode: public DecisionTreeNode {
 		int getIndex(double attr_val);
 
 		std::vector<DecisionTreeNode*> getChildPointers();
+
+		DecisionTreeNode*& getChildPointer(int index);
 	private:
 		std::vector<double> dividers;
 		std::vector<DecisionTreeNode*> child;
 };
+
 
 class Instance {
 	public:
@@ -57,7 +60,9 @@ class Instance {
 			const std::vector<std::string>& attr_names, const std::vector<std::string>& attr_vals);
 
 		// Used to access value of a particular attribute
-		std::string operator[](const std::string& attr_name);
+		std::string& operator[](const std::string& attr_name);
+		friend std::ostream& operator<<(std::ostream& out, const Instance& inst);
+
 
 	protected:
 		std::unordered_map<std::string, std::string> els;
