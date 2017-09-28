@@ -138,6 +138,7 @@ void DecisionTree::build(std::vector<Example> train_data,
 		p -> setType("leaf");
 		return;
 	}
+	std::cout << "jslfdj\n";
 
 	// check if all examples have same target class
 	bool leaf = true;
@@ -231,10 +232,21 @@ void DecisionTree::print() {
 }
 
 void DecisionTree::print(DecisionTreeNode *p) {
-	if (p -> getType() == "leaf") {
-		std::cout << p -> getAttrName();
-	} else {
-		
+	std::cout << (p -> getAttrName());
+	if (p -> getType() == "discrete") {
+		DiscAttrDecisionTreeNode* pp = static_cast<DiscAttrDecisionTreeNode*>(p);
+		std::vector<DecisionTreeNode*> child_pointers;
+		child_pointers = pp -> getChildPointers();
+		for (int i = 0; i < child_pointers.size(); i++) {
+			print(child_pointers[i]);
+		}
+	} else if (p -> getType() == "continuous") {
+		ContAttrDecisionTreeNode* pp = static_cast<ContAttrDecisionTreeNode*>(p);
+		std::vector<DecisionTreeNode*> child_pointers;
+		child_pointers = pp -> getChildPointers();
+		for (int i = 0; i < child_pointers.size(); i++) {
+			print(child_pointers[i]);
+		}
 	}
 }
 
