@@ -97,7 +97,7 @@ class DecisionTree {
 
 		// Returns information gain
 		// 'attr_name' must be a discrete-valued attribute
-		double infoGain(std::vector<Example> els, const std::string& attr_name);
+		double discInfoGain(std::vector<Example> els, const std::string& attr_name);
 
 		// Returns a pair (info gain, vector of dividers)
 		// 'attr_name' must be a continous-valued attribute

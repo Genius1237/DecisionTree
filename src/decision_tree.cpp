@@ -155,7 +155,7 @@ void DecisionTree::build(std::vector<Example> train_data,
 					dividers = temp.second;
 				}
 			} else {
-				double cand_gain = infoGain(train_data, check_attr[i]);
+				double cand_gain = discInfoGain(train_data, check_attr[i]);
 				if (cand_gain > max_gain) {
 					max_gain = cand_gain;
 					max_index = i;
@@ -198,7 +198,7 @@ void DecisionTree::build(std::vector<Example> train_data,
 	}
 }
 
-double DecisionTree::infoGain(std::vector<Example> els, const std::string& attr_name){
+double DecisionTree::discInfoGain(std::vector<Example> els, const std::string& attr_name){
 
 		std::set<std::string> target_val_set = target_values;
 		std::map< std::string,int > num_attr[num_target_val];
