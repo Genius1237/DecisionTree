@@ -3,6 +3,8 @@
 #include <sstream>
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
+#include <iostream>
 
 std::string missing_attr= "?";
 int num_target_val=2;
@@ -26,6 +28,10 @@ void DecisionTreeNode::setType(const std::string& type) {
 	this -> type = type;
 }
 
+std::string DecisionTreeNode::getType() {
+	return type;
+}
+
 // --------------------- discAttrDecisionTreeNode Class ---------------------------
 DiscAttrDecisionTreeNode::DiscAttrDecisionTreeNode() {
 	type = "discrete";
@@ -35,25 +41,36 @@ DecisionTreeNode*& DiscAttrDecisionTreeNode::operator[](const std::string& attr_
 	return child[attr_val];
 }
 
+std::vector<DecisionTreeNode*> DiscAttrDecisionTreeNode::getChildPointers() {
+	std::vector<DecisionTreeNode*> ret;
+	for (auto it = child.begin(); it != child.end(); it++) {
+		ret.push_back(it -> second);
+	}
+	return ret;
+}
 
 // --------------------- contAttrDecisionTreeNode Class ---------------------------
 ContAttrDecisionTreeNode::ContAttrDecisionTreeNode() {
 	type = "continous";
 }
 
-DecisionTreeNode*& ContAttrDecisionTreeNode::operator[](const double &attr_val) {
-
+int ContAttrDecisionTreeNode::getIndex(double attr_val) {
 	auto it = std::upper_bound(dividers.begin(), dividers.end(), attr_val);
-	if (it == dividers.end()) {
-		return child[child.size() - 1];
-	} else {
-		return child[it - dividers.begin()];
-	}
+	return it - dividers.begin();
+}
+
+DecisionTreeNode*& ContAttrDecisionTreeNode::operator[](const double &attr_val) {
+	return child[getIndex(attr_val)];
 }
 
 void ContAttrDecisionTreeNode::setDividers(const std::vector<double> dividers) {
 	this -> dividers = dividers;
-	child.resize(dividers.size() + 1);
+	sort((this -> dividers).begin(), (this -> dividers).end());
+	child.resize((this -> dividers).size() + 1);
+}
+
+std::vector<DecisionTreeNode*> ContAttrDecisionTreeNode::getChildPointers() {
+	return child;
 }
 
 // --------------------- Instance Class ---------------------------
@@ -119,8 +136,8 @@ void DecisionTree::build(std::vector<Example> train_data,
 		p = new DecisionTreeNode;
 		p -> setAttrName("random");
 		p -> setType("leaf");
+		return;
 	}
-	return;
 
 	// check if all examples have same target class
 	bool leaf = true;
@@ -145,6 +162,7 @@ void DecisionTree::build(std::vector<Example> train_data,
 		// find which attribute should be at the node
     for (int i = 0; i < check_attr.size(); i++) {
 			if (pos_vals[check_attr[i]].size() == 0) {
+				// if continous attribute
 				std::pair<double, std::vector<double>>temp = contInfoGain(
 					train_data, check_attr[i]);
 				double cand_gain = temp.first;
@@ -163,39 +181,108 @@ void DecisionTree::build(std::vector<Example> train_data,
 				}
 			}
 		}
+		// now, the attribute to be placed has been found
     std::string attr_name = check_attr[max_index];
+    check_attr.erase(check_attr.begin() + max_index);
 
     if (is_cont) {
       p = new ContAttrDecisionTreeNode;
       p -> setType("continous");
       p -> setAttrName(attr_name);
-      check_attr.erase(check_attr.begin() + max_index);
 
       ContAttrDecisionTreeNode *pp = static_cast<ContAttrDecisionTreeNode*>(p);
       pp -> setDividers(dividers);
-      for (int i = 0; i < train_data.size(); i++) {
-        ;
+      // iterating through each child
+      for (int i = 0; i <= dividers.size(); i++) {
+        // check which examples will be in this child
+        std::vector<Example> sub_train_data;
+        for (int j = 0; j < train_data.size(); j++) {
+        	if (pp -> getIndex(atof(train_data[j][attr_name].c_str())) == i) {
+        		sub_train_data.push_back(train_data[j]);
+        	}
+        }
+      	build(sub_train_data,
+      		(*pp)[atof(sub_train_data[0][attr_name].c_str())], check_attr);
       }
 
     } else {
       p = new DiscAttrDecisionTreeNode;
       p -> setType("discrete");
       p -> setAttrName(attr_name);
-      check_attr.erase(check_attr.begin() + max_index);
 
       DiscAttrDecisionTreeNode *pp = static_cast<DiscAttrDecisionTreeNode*>(p);
+      // iterating through each possible value for the selected attribute
       for (int i = 0; i < pos_vals[attr_name].size(); i++) {
-        (*pp)[check_attr[i]] = NULL;
+        (*pp)[pos_vals[attr_name][i]] = NULL;
         std::vector<Example> sub_train_data;
         for (int j = 0; j < train_data.size(); j++) {
           if (train_data[j][attr_name] == pos_vals[attr_name][i]) {
             sub_train_data.push_back(train_data[j]);
           }
         }
-				build(sub_train_data, (*pp)[check_attr[i]], check_attr);
+				build(sub_train_data, (*pp)[pos_vals[attr_name][i]], check_attr);
 			}
 		}
 	}
+}
+
+void DecisionTree::print() {
+	print(root);
+}
+
+void DecisionTree::print(DecisionTreeNode *p) {
+	if (p -> getType() == "leaf") {
+		std::cout << p -> getAttrName();
+	} else {
+		
+	}
+}
+
+std::pair<double, std::vector<double> > DecisionTree::contInfoGain(std::vector<Example> els,const std::string& attr_name){
+
+		std::set<std::pair<double,std::string> > cont_val_set;
+		for(int i=0;i<els.size(); i++)
+				cont_val_set.insert(make_pair(atof(els[i][attr_name].c_str()),els[i].getTargetClass()));
+
+		std::vector<std::pair<double,std::string> > cont_val_list;
+		for(auto it = cont_val_set.begin(); it!= cont_val_set.end(); it++){
+				cont_val_list.push_back(*it);
+		}
+
+		double pos,info_gain=-1;
+		double sum = els.size();
+
+		std::map<std::string, int> calc_entropy_map;
+		for(int i=0; i< els.size(); i++)
+ 		 		calc_entropy_map[els[i].getTargetClass()]++;
+
+ 	 double entropy_1 = calcEntropy(calc_entropy_map);
+
+	 for(int i=1; i< cont_val_list.size(); i++){
+
+				if(cont_val_list[i].second == cont_val_list[i-1].second)		continue;
+				else{
+								double numerator = 0;
+								calc_entropy_map.clear();
+								for(int j=0; j<=i-1; j++)
+										calc_entropy_map[cont_val_list[j].second]++,numerator++;
+
+								double entropy_2 = (numerator/sum)*calcEntropy(calc_entropy_map);
+								calc_entropy_map.clear(); numerator=0;
+
+								for(int j=i;j<cont_val_list.size(); j++)
+											calc_entropy_map[cont_val_list[j].second]++,numerator++;
+
+								entropy_2+=(numerator/sum)*calcEntropy(calc_entropy_map);
+								if(entropy_1-entropy_2 >info_gain){
+										info_gain=entropy_1-entropy_2;
+										pos=(cont_val_list[i].first + cont_val_list[i-1].first)/2;
+								}
+				}
+		}
+		std::vector<double> temp;
+		temp.push_back(pos);
+		return make_pair(info_gain,temp);
 }
 
 double DecisionTree::discInfoGain(std::vector<Example> els, const std::string& attr_name){
@@ -292,7 +379,7 @@ double DecisionTree::calcEntropy(const std::map< std::string, int>& els){
 }
 
 // -------------------- Data Extraction --------------------------------------
-std::vector<std::vector<std::string> > Reader::readData(std::string fileloc, int n){
+std::vector<std::vector<std::string> > Reader::readData(std::string fileloc){
 	std::ifstream fin(fileloc,std::ios::in);
 	std::vector<std::vector<std::string> > data;
 	while(!fin.eof()){
@@ -300,7 +387,7 @@ std::vector<std::vector<std::string> > Reader::readData(std::string fileloc, int
 		std::vector<std::string> att;
 		fin>>s;
 		std::stringstream str(s);
-		for(int i=0;i<n;i++){
+		while (str) {
 			std::string temp;
 			std::getline(str,temp,',');
 			att.push_back(temp);
