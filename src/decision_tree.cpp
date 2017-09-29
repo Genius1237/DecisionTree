@@ -90,6 +90,10 @@ Instance::Instance() {
 	;
 }
 
+Instance::Instance(const Example& exmp) {
+	els = exmp.els;
+}
+
 Instance::Instance(
 	const std::vector<std::string>& attr_names, const std::vector<std::string>& attr_vals) {
 	for (int i = 0; i < attr_names.size(); i++) {
@@ -109,10 +113,6 @@ std::ostream& operator<<(std::ostream& out, const Instance& inst) {
 		out << ", ";
 	}
 	return out;
-}
-
-std::unordered_map<std::string, std::string> Instance::getEls() {
-	return els;
 }
 
 // --------------------- Example Class ---------------------------
@@ -266,12 +266,12 @@ void DecisionTree::build(std::vector<Example> train_data,
 	}
 }
 
-double DecisionTree::test(std::vector<Instance> test_data,
-	std::vector<std::string> target_values) {
+double DecisionTree::test(std::vector<Example> test_data) {
 
 	int correct = 0, wrong = 0;
 	for (int i = 0; i < test_data.size(); i++) {
-		if (classify(test_data[i]) == target_values[i]) {
+		Instance temp(test_data[i]);
+		if (classify(temp) == test_data[i].getTargetClass()) {
 			++correct;
 		} else {
 			++wrong;

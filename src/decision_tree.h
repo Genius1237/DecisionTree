@@ -52,10 +52,13 @@ class ContAttrDecisionTreeNode: public DecisionTreeNode {
 		std::vector<DecisionTreeNode*> child;
 };
 
+class Example;
 
 class Instance {
 	public:
 		Instance();
+
+		Instance(const Example& exmp);
 
 		// Precondition: Size of 'attr_names' qual to size of 'attr_vals'
 		Instance(
@@ -64,7 +67,6 @@ class Instance {
 		// Used to access value of a particular attribute
 		std::string& operator[](const std::string& attr_name);
 		friend std::ostream& operator<<(std::ostream& out, const Instance& inst);
-		std::unordered_map<std::string, std::string> getEls();
 	protected:
 		std::unordered_map<std::string, std::string> els;
 };
@@ -101,7 +103,7 @@ class DecisionTree {
 		void prune(const std::vector<Example>& validation_data);
 
 		// 'build' must be called before calling this function
-		double test(std::vector<Instance>, std::vector<std::string>);
+		double test(std::vector<Example>);
 
 		// Returns the target value given to the instance 'inst' using the
 		// already built decision tree

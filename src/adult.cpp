@@ -14,48 +14,42 @@ std::vector<Example> getExamples(const std::string& fileloc, const std::vector<s
 	return ret;
 }
 
-std::pair<std::vector<Instance>, std::vector<std::string>> getTestData(
-	const std::string& fileloc, const std::vector<std::string>& attr_names) {
+std::vector<Example> getTestData(const std::string& fileloc,
+	const std::vector<std::string>& attr_names, bool fill_unknown) {
 
-	std::vector<Instance> instances;
-	std::vector<std::string> target_values;
-	std::vector<Example>els = getExamples(fileloc, attr_names);
-  for (auto const& attr_name: attr_names) {
-	  //       target_val ,      attr_val, cnt
-		std::map<std::string, std::map<std::string, int>> bins;
-		for (int i = 0; i < els.size(); i++) {
-			if (els[i][attr_name] != missing_attr) {
-				bins[els[i].getTargetClass()][els[i][attr_name]]++;
-			}
-		}
+	std::vector<Example> els = getExamples(fileloc, attr_names);
 
-		// filling of missing vals
-		for (int i = 0; i < els.size(); i++) {
-			if (els[i][attr_name] == missing_attr) {
-				int max = -1;
-				std::string attr_val;
-				for (auto const &x: bins[els[i].getTargetClass()]) {
-					if (x.second > max) {
-						max = x.second;
-						attr_val = x.first;
-					}
+ 	if (fill_unknown) {
+	  for (auto const& attr_name: attr_names) {
+		  //       target_val ,      attr_val, cnt
+			std::map<std::string, std::map<std::string, int>> bins;
+			for (int i = 0; i < els.size(); i++) {
+				if (els[i][attr_name] != missing_attr) {
+					bins[els[i].getTargetClass()][els[i][attr_name]]++;
 				}
-				els[i][attr_name] = attr_val;
+			}
+
+			// filling of missing vals
+			for (int i = 0; i < els.size(); i++) {
+				if (els[i][attr_name] == missing_attr) {
+					int max = -1;
+					std::string attr_val;
+					for (auto const &x: bins[els[i].getTargetClass()]) {
+						if (x.second > max) {
+							max = x.second;
+							attr_val = x.first;
+						}
+					}
+					els[i][attr_name] = attr_val;
+				}
 			}
 		}
-	}
-	for (auto x: els) {
-		std::vector<std::string> attr_vals;
-		for (auto y: x.getEls()) {
-			attr_vals.push_back(y.second);
-		}
-		instances.push_back(Instance(attr_names, attr_vals));
-		target_values.push_back(x.getTargetClass());
-	}
-	return make_pair(instances, target_values);
+ 	}
+
+	return els;
 }
 
-void func(std::vector<std::vector<std::string>>& dat, std::vector<std::string>& attr_names, DecisionTree& dt){
+void attrInfo(std::vector<std::vector<std::string>>& dat, std::vector<std::string>& attr_names, DecisionTree& dt){
 	for (int i = 0; i < dat.size(); i++) {
 		attr_names.push_back(dat[i][0]);
 		std::vector<std::string> temp;
@@ -83,16 +77,21 @@ int main(){
 
 	// addAttrInfo
 	std::vector<std::vector<std::string>> dat = Reader::readData("../data/adult_attr");
-	func(dat, attr_names, dt);
+	attrInfo(dat, attr_names, dt);
 
 	// obtain test data
-	std::pair<std::vector<Instance>, std::vector<std::string>> test_data =
-		getTestData("../data/adult_test", attr_names);
+	std::vector<Example> test_data = getTestData(
+		"../data/adult_test", attr_names, true);
+
+	/*
+	std::vector<Example> test_data = getTestData(
+		"../data/adult_test_no_unknown", attr_names, false);
+	*/
 
 	// build
 	dt.build(getExamples("../data/adult_data", attr_names));
 
-	std::cout << dt.test(test_data.first, test_data.second) << "\n";
+	std::cout << dt.test(test_data) << "\n";
 
 	return 0;
 }
