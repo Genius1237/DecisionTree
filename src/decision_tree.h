@@ -25,7 +25,7 @@ class DiscAttrDecisionTreeNode: public DecisionTreeNode {
 
 		// attr_val must be a possible value of attr_name
 		DecisionTreeNode*& operator[](const std::string& attr_val);
-		std::vector<DecisionTreeNode*> getChildPointers();
+		std::pair<std::vector<std::string>, std::vector<DecisionTreeNode*>> getChildPointers();
 	private:
 		std::unordered_map<std::string, DecisionTreeNode*> child;
 };
@@ -100,15 +100,18 @@ class DecisionTree {
 		void prune(const std::vector<Example>& validation_data);
 
 		// 'build' must be called before calling this function
-		double test(const std::vector<Example>& test_data);
+		double test(std::vector<Instance>, std::vector<std::string>);
 
+		// Returns the target value given to the instance 'inst' using the
+		// already built decision tree
+		std::string classify(Instance inst);
+		
 		void print();
 
 	private:
-		// Returns the target value given to the instance 'inst' using the
-		// already built decision tree
-		std::string classify(const Instance& inst);
-
+		// used by pubic 'classify'
+		std::string classify(Instance inst, DecisionTreeNode *p);
+		
 		// Used by public 'build'
 		void build(std::vector<Example> train_data, DecisionTreeNode*& p,
 			std::vector<std::string> check_attr);
