@@ -92,6 +92,21 @@ int main(){
 	dt.build(getExamples("../data/adult_data", attr_names));
 
 	std::cout << dt.test(test_data) << "\n";
-
 	return 0;
 }
+
+/*
+Removing unknown
+77.0518
+
+real  0m32.348s
+user  0m31.276s
+sys 0m1.064s
+
+Filling unknown
+77.8576
+
+real  0m29.611s
+user  0m28.660s
+sys 0m0.948s
+*/
