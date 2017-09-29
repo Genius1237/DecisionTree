@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <iostream>
 
-std::string missing_attr= "?";
+
 
 
 // --------------------- DecisionTreeNode Class ---------------------------
@@ -40,9 +40,9 @@ DecisionTreeNode*& DiscAttrDecisionTreeNode::operator[](const std::string& attr_
 	return child[attr_val];
 }
 
-std::pair<std::vector<std::string>, std::vector<DecisionTreeNode*>> 
+std::pair<std::vector<std::string>, std::vector<DecisionTreeNode*>>
 	DiscAttrDecisionTreeNode::getChildPointers() {
-	
+
 	std::vector<std::string> attr_vals;
 	std::vector<DecisionTreeNode*> p;
 	for (auto const &x: child) {
@@ -111,6 +111,10 @@ std::ostream& operator<<(std::ostream& out, const Instance& inst) {
 	return out;
 }
 
+std::unordered_map<std::string, std::string> Instance::getEls() {
+	return els;
+}
+
 // --------------------- Example Class ---------------------------
 
 Example::Example() {
@@ -141,36 +145,17 @@ void DecisionTree::addTargetValues(std::set<std::string> target_values) {
 	this -> target_values = target_values;
 }
 
-int nodes = 0;
-
 void DecisionTree::build(const std::vector<Example>& train_data) {
-	/*for (auto x: train_data) {
-		for (auto y: x.els) {
-			std::cout << y.first << ":" << y.second << " ";
-		}
-		std::cout << x.getTargetClass() << " " << std::endl;
-	std::cout << "*********************************" << std::endl;
-	}*/
 	std::vector<std::string> all_attr;
 	for (auto it = pos_vals.begin(); it != pos_vals.end(); it++) {
 		all_attr.push_back(it -> first);
 	}
-	/*for (auto x: target_values) {
-		std::cout << x << std::endl;
-	}*/
-	/*for (auto x: pos_vals) {
-		std::cout << x.first << ":";
-		for (auto y: x.second) {
-			std::cout << y << " ";
-		}
-		std::cout << std::endl;
-	}*/
-	build(train_data, root, all_attr);
-	//std::cout << "nodes:" << nodes << std::endl;
+	int nodes = 0;
+	build(train_data, root, all_attr, nodes);
 }
 
 void DecisionTree::build(std::vector<Example> train_data,
-	DecisionTreeNode*& p, std::vector<std::string> check_attr) {
+	DecisionTreeNode*& p, std::vector<std::string> check_attr, int& nodes) {
 
 	// check if there is any training data. if not assign a target class randomly
 	if (check_attr.empty()) {
@@ -184,7 +169,7 @@ void DecisionTree::build(std::vector<Example> train_data,
 		p -> setType("leaf");
 		return;
 	}
-	
+
 	if (train_data.empty()) {
 		p = new DecisionTreeNode;++nodes;
 		//std::cout << "train_data.size() == 0" << std::endl;
@@ -237,7 +222,6 @@ void DecisionTree::build(std::vector<Example> train_data,
 			}
 		}
 
-		//std::cout << "build 3b2" << std::endl;
 		// now, the attribute to be placed has been found
     std::string attr_name = check_attr[max_index];
     check_attr.erase(check_attr.begin() + max_index);
@@ -256,10 +240,9 @@ void DecisionTree::build(std::vector<Example> train_data,
       	bins[pp -> getIndex(atof(train_data[i][attr_name].c_str()))].push_back(train_data[i]);
       }
 
-			//std::cout << "build 3b1a" << std::endl;
       // iterating through each child
       for (int i = 0; i <= dividers.size(); i++) {
-        build(bins[i], pp -> getChildPointer(i), check_attr);
+        build(bins[i], pp -> getChildPointer(i), check_attr, nodes);
       }
 
     } else {
@@ -276,15 +259,16 @@ void DecisionTree::build(std::vector<Example> train_data,
 
 			//std::cout << "build 3b1b" << std::endl;
       for (int i = 0; i < pos_vals[attr_name].size(); i++) {
-				build(bins[pos_vals[attr_name][i]], (*pp)[pos_vals[attr_name][i]], check_attr);
+				build(bins[pos_vals[attr_name][i]], (*pp)[pos_vals[attr_name][i]],
+					check_attr, nodes);
 			}
 		}
 	}
 }
 
-double DecisionTree::test(std::vector<Instance> test_data, 
+double DecisionTree::test(std::vector<Instance> test_data,
 	std::vector<std::string> target_values) {
-	
+
 	int correct = 0, wrong = 0;
 	for (int i = 0; i < test_data.size(); i++) {
 		if (classify(test_data[i]) == target_values[i]) {

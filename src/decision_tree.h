@@ -7,6 +7,8 @@
 #include <set>
 #include <map>
 
+const std::string missing_attr= "?";
+
 class DecisionTreeNode {
 	public:
 		DecisionTreeNode();
@@ -62,8 +64,7 @@ class Instance {
 		// Used to access value of a particular attribute
 		std::string& operator[](const std::string& attr_name);
 		friend std::ostream& operator<<(std::ostream& out, const Instance& inst);
-
-
+		std::unordered_map<std::string, std::string> getEls();
 	protected:
 		std::unordered_map<std::string, std::string> els;
 };
@@ -105,16 +106,17 @@ class DecisionTree {
 		// Returns the target value given to the instance 'inst' using the
 		// already built decision tree
 		std::string classify(Instance inst);
-		
+
 		void print();
+
 
 	private:
 		// used by pubic 'classify'
 		std::string classify(Instance inst, DecisionTreeNode *p);
-		
+
 		// Used by public 'build'
 		void build(std::vector<Example> train_data, DecisionTreeNode*& p,
-			std::vector<std::string> check_attr);
+			std::vector<std::string> check_attr, int& nodes);
 
 		// Returns information gain
 		// 'attr_name' must be a discrete-valued attribute
