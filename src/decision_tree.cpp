@@ -250,7 +250,8 @@ void DecisionTree::build(std::vector<Example> train_data,
       }
 
     } else {
-      discInfoGain(train_data, attr_name, false);
+      discInfoGain(train_data, attr_name, true);
+
       p = new DiscAttrDecisionTreeNode;++nodes;
       p -> setType("discrete");
       p -> setAttrName(attr_name);
