@@ -91,7 +91,9 @@ int main(){
 	// build
 	dt.build(getExamples("../data/adult_data", attr_names));
 
-	std::cout << dt.test(test_data) << "\n";
+  dt.print();
+
+	//std::cout << dt.test(test_data) << "\n";
 	return 0;
 }
 

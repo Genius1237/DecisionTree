@@ -17,7 +17,7 @@ class DecisionTreeNode {
 		void setType(const std::string& type);
 		std::string getType();
 	protected:
-		std::string attr_name;
+		std::string attr_name; // if type is 'leaf' then this will be a target value
 		std::string type; // one of 'discrete', 'continuous' and 'leaf'
 };
 
@@ -39,14 +39,14 @@ class ContAttrDecisionTreeNode: public DecisionTreeNode {
 		DecisionTreeNode*& operator[](const double& attr_val);
 
 		// this must be called before using operator[]
-		void setDividers(const std::vector<double> dividers);
+		void setDividers(const std::vector<double>& dividers);
 
 		// return value 'r' is such that attr_val will belong to child[r]
-		int getIndex(double attr_val);
+		int getIndex(const double& attr_val);
 
 		std::vector<DecisionTreeNode*> getChildPointers();
 
-		DecisionTreeNode*& getChildPointer(int index);
+		DecisionTreeNode*& getChildPointer(const int& index);
 	private:
 		std::vector<double> dividers;
 		std::vector<DecisionTreeNode*> child;
@@ -65,8 +65,12 @@ class Instance {
 			const std::vector<std::string>& attr_names, const std::vector<std::string>& attr_vals);
 
 		// Used to access value of a particular attribute
-		std::string& operator[](const std::string& attr_name);
+    std::string operator[](const std::string& attr_name) const;
+
+    void setAttrVal(const std::string& attr_name, const std::string& attr_val);
+
 		friend std::ostream& operator<<(std::ostream& out, const Instance& inst);
+
 	protected:
 		std::unordered_map<std::string, std::string> els;
 };
@@ -93,7 +97,7 @@ class DecisionTree {
 			const std::vector<std::string>& attr_vals);
 
 		// Used to populate 'target_values'
-		void addTargetValues(std::set<std::string> target_values);
+		void addTargetValues(const std::set<std::string>& target_values);
 
 		// 'addAttrInfo' and 'addTargetValues' must be used before calling
 		// this function
@@ -103,18 +107,18 @@ class DecisionTree {
 		void prune(const std::vector<Example>& validation_data);
 
 		// 'build' must be called before calling this function
-		double test(std::vector<Example>);
+		double test(const std::vector<Example>& test_data);
 
 		// Returns the target value given to the instance 'inst' using the
 		// already built decision tree
-		std::string classify(Instance inst);
+		std::string classify(const Instance& inst);
 
 		void print();
 
 
 	private:
 		// used by pubic 'classify'
-		std::string classify(Instance inst, DecisionTreeNode *p);
+		std::string classify(const Instance& inst, DecisionTreeNode *p);
 
 		// Used by public 'build'
 		void build(std::vector<Example> train_data, DecisionTreeNode*& p,
@@ -122,12 +126,13 @@ class DecisionTree {
 
 		// Returns information gain
 		// 'attr_name' must be a discrete-valued attribute
-		double discInfoGain(std::vector<Example> els, const std::string& attr_name);
+    double discInfoGain(std::vector<Example>& els_ref,
+      const std::string& attr_name, bool in_place);
 
 		// Returns a pair (info gain, vector of dividers)
 		// 'attr_name' must be a continous-valued attribute
 		std::pair<double, std::vector<double>> contInfoGain(
-			std::vector<Example> els, const std::string& attr_name);
+      const std::vector<Example>& els, const std::string& attr_name);
 
 		// Returns entropy given a map
 		// (target value, num of occurrences of that target value)
@@ -141,7 +146,8 @@ class DecisionTree {
 		std::unordered_map<std::string, std::vector<std::string> > pos_vals;
 
 		DecisionTreeNode *root;
-		std::set<std::string> target_values;
+		
+    std::set<std::string> target_values;
 };
 
 class Reader {
