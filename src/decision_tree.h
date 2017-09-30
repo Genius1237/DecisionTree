@@ -67,6 +67,8 @@ class Instance {
 		// Used to access value of a particular attribute
     std::string operator[](const std::string& attr_name) const;
 
+    //std::string& operator[](const std::string& attr_name);
+
     void setAttrVal(const std::string& attr_name, const std::string& attr_val);
 
 		friend std::ostream& operator<<(std::ostream& out, const Instance& inst);
@@ -146,7 +148,7 @@ class DecisionTree {
 		std::unordered_map<std::string, std::vector<std::string> > pos_vals;
 
 		DecisionTreeNode *root;
-		
+
     std::set<std::string> target_values;
 };
 

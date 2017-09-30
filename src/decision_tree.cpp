@@ -105,6 +105,10 @@ std::string Instance::operator[](const std::string& attr_name) const {
 	return els.at(attr_name);
 }
 
+/*std::string& Instance::operator[](const std::string& attr_name) {
+  return els[attr_name];
+}*/
+
 void Instance::setAttrVal(const std::string& attr_name, const std::string& attr_val) {
   els[attr_name] = attr_val;
 }
@@ -263,8 +267,7 @@ void DecisionTree::build(std::vector<Example> train_data,
       	bins[train_data[i][attr_name]].push_back(train_data[i]);
       }
 
-			//std::cout << "build 3b1b" << std::endl;
-      for (int i = 0; i < pos_vals[attr_name].size(); i++) {
+			for (int i = 0; i < pos_vals[attr_name].size(); i++) {
 				build(bins[pos_vals[attr_name][i]], (*pp)[pos_vals[attr_name][i]],
 					check_attr, nodes);
 			}
@@ -395,7 +398,7 @@ double DecisionTree::discInfoGain(std::vector<Example>& els_ref, const std::stri
   		}
   	}
     return 0;
-  
+
   } else {
     std::vector<Example> els = els_ref;
       //       target_val ,      attr_val, cnt
