@@ -119,7 +119,7 @@ class DecisionTree {
 
 		void print();
 
-
+		void printStats(const std::vector<Example>& test_data);
 
 	protected:
 		ll prune(DecisionTreeNode* p, std::vector<Example> prune_data);
@@ -184,6 +184,9 @@ class RandomForest : public DecisionTree{
 		void print();
 
 		double test(const std::vector<Example>& test_data);
+
+		void printStats(const std::vector<Example>& test_data);
+
 };
 
 #endif
