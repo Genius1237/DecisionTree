@@ -149,7 +149,7 @@ void DecisionTree::addAttrInfo(
 	pos_vals[attr_name] = attr_vals;
 }
 
-void DecisionTree::addTargetValues(const std::set<std::string>& target_values) {
+void DecisionTree::addTargetValues(const std::vector<std::string>& target_values) {
 	this -> target_values = target_values;
 }
 
@@ -170,9 +170,21 @@ void DecisionTree::build(std::vector<Example> train_data,
 		p = new DecisionTreeNode;++nodes;
 		if (train_data.empty()) {
 			//std::cout << "unknown" << std::endl;
-			p -> setAttrName(*(target_values.begin()));
+			p -> setAttrName(target_values[0]);
 		} else {
-			p -> setAttrName(train_data[0].getTargetClass());
+			std::map<std::string, ll> occ;
+			for (auto const& x: train_data) {
+				occ[x.getTargetClass()]++;
+			}
+			ll max = -1;
+			std::string target_val;
+			for (auto const& x: occ) {
+				if (x.second > max) {
+					max = x.second;
+					target_val = x.first;
+				}
+			}
+			p -> setAttrName(target_val);
 		}
 		p -> setType("leaf");
 		return;
@@ -181,7 +193,7 @@ void DecisionTree::build(std::vector<Example> train_data,
 	if (train_data.empty()) {
 		p = new DecisionTreeNode;++nodes;
 		//std::cout << "train_data.size() == 0" << std::endl;
-		p -> setAttrName(*(target_values.begin()));
+		p -> setAttrName(target_values[0]);
 		p -> setType("leaf");
 		return;
 	}
@@ -245,7 +257,7 @@ void DecisionTree::build(std::vector<Example> train_data,
       std::vector<std::vector<Example>> bins;
       bins.resize(dividers.size() + 1);
       for (ll i = 0; i < train_data.size(); i++) {
-      	bins[pp -> getIndex(atof(train_data[i][attr_name].c_str()))].push_back(train_data[i]);
+      	bins[pp -> getIndex(std::stof(train_data[i][attr_name]))].push_back(train_data[i]);
       }
 
       // iterating through each child
@@ -272,6 +284,79 @@ void DecisionTree::build(std::vector<Example> train_data,
 					check_attr, nodes);
 			}
 		}
+	}
+}
+
+void DecisionTree::prune(const std::vector<Example>& prune_data) {
+	prune(root, prune_data);
+}
+
+ll DecisionTree::prune(DecisionTreeNode* p, std::vector<Example> prune_data) {
+	if (p -> getType() == "leaf") {
+		ll num_errors = 0;
+		for (ll i = 0; i < prune_data.size(); i++) {
+			if (prune_data[i].getTargetClass() != p -> getAttrName()) {
+				++num_errors;
+			}
+		}
+		return num_errors;
+	}
+
+	// find number of error if current node was made leaf
+	//       target_val  occ
+	std::map<std::string, ll> curr;
+	for (ll i = 0; i < prune_data.size(); i++) {
+		curr[prune_data[i].getTargetClass()]++;
+	}
+	ll max_occ = -1;
+	std::string max_occ_target_val;
+	for (auto it = curr.begin(); it != curr.end(); ++it) {
+		if (it -> second > max_occ) {
+			max_occ = it -> second;
+			max_occ_target_val = it -> first;
+		}
+	}
+	ll current_error = prune_data.size() - max_occ;
+
+	// prune children
+	ll total_child_errors = 0;
+	if (p -> getType() == "discrete") {
+		
+		// bin prune_data depending on attribute of current node
+		//        attr_val
+		std::map<std::string, std::vector<Example>> bins;
+		for (ll i = 0; i < prune_data.size(); i++) {
+			bins[prune_data[i][p -> getAttrName()]].push_back(prune_data[i]);
+		} 
+
+		DiscAttrDecisionTreeNode* pp = static_cast<DiscAttrDecisionTreeNode*>(p);
+		std::pair<std::vector<std::string>, std::vector<DecisionTreeNode*>> child_pointers = 
+			pp -> getChildPointers();
+		for (ll i = 0; i < child_pointers.first.size(); i++) {
+			total_child_errors += prune(child_pointers.second[i], bins[child_pointers.first[i]]);
+		}
+	} else {
+
+		ContAttrDecisionTreeNode* pp = static_cast<ContAttrDecisionTreeNode*>(p);
+		
+		// bin prune_data depending on attribute of current node
+		//        child index
+		std::map<ll, std::vector<Example>> bins;
+		for (ll i = 0; i < prune_data.size(); i++) {
+			bins[pp -> getIndex(std::stof(prune_data[i][p -> getAttrName()]))].push_back(prune_data[i]);
+		}
+
+		std::vector<DecisionTreeNode*> child_pointers = pp -> getChildPointers();
+		for (ll i = 0; i < child_pointers.size(); i++) {
+			total_child_errors = prune(child_pointers[i], bins[i]);
+		}
+	}
+	if (current_error <= total_child_errors) {
+		p -> setType("leaf");
+		p -> setAttrName(max_occ_target_val);
+		return current_error;
+	} else {
+		return total_child_errors;
 	}
 }
 
@@ -302,7 +387,7 @@ std::string DecisionTree::classify(const Instance& inst, DecisionTreeNode *p) {
 		return p -> getAttrName();
 	} else if (p -> getType() == "continuous") {
 		ContAttrDecisionTreeNode *pp = static_cast<ContAttrDecisionTreeNode*>(p);
-		return classify(inst, (*pp)[atof((inst[p -> getAttrName()]).c_str())]);
+		return classify(inst, (*pp)[std::stof((inst[p -> getAttrName()]))]);
 	} else {
 		DiscAttrDecisionTreeNode *pp = static_cast<DiscAttrDecisionTreeNode*>(p);
 		return classify(inst, (*pp)[inst[p -> getAttrName()]]);
@@ -333,7 +418,7 @@ void DecisionTree::print(DecisionTreeNode *p) {
 std::pair<double, std::vector<double> > DecisionTree::contInfoGain(const std::vector<Example>& els,const std::string& attr_name){
 		std::set<std::pair<double,std::string> > cont_val_set;
 		for(ll i=0;i<els.size(); i++)
-				cont_val_set.insert(make_pair(atof(els[i][attr_name].c_str()),els[i].getTargetClass()));
+				cont_val_set.insert(make_pair(std::stof(els[i][attr_name]),els[i].getTargetClass()));
 
 		std::vector<std::pair<double,std::string> > cont_val_list;
 		for(auto it = cont_val_set.begin(); it!= cont_val_set.end(); it++){

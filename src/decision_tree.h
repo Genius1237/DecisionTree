@@ -101,14 +101,14 @@ class DecisionTree {
 			const std::vector<std::string>& attr_vals);
 
 		// Used to populate 'target_values'
-		void addTargetValues(const std::set<std::string>& target_values);
+		void addTargetValues(const std::vector<std::string>& target_values);
 
 		// 'addAttrInfo' and 'addTargetValues' must be used before calling
 		// this function
 		void build(const std::vector<Example>& train_data);
 
 		// 'build' must be called before calling this function
-		void prune(const std::vector<Example>& validation_data);
+		void prune(const std::vector<Example>& prune_data);
 
 		// 'build' must be called before calling this function
 		double test(const std::vector<Example>& test_data);
@@ -121,6 +121,8 @@ class DecisionTree {
 
 
 	private:
+
+		ll prune(DecisionTreeNode* p, std::vector<Example> prune_data);
 
 		// used by pubic 'classify'
 		std::string classify(const Instance& inst, DecisionTreeNode *p);
@@ -152,7 +154,7 @@ class DecisionTree {
 
 		DecisionTreeNode *root;
 
-    std::set<std::string> target_values;
+    std::vector<std::string> target_values;
 };
 
 class Reader {

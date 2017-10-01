@@ -67,30 +67,29 @@ void attrInfo(std::vector<std::vector<std::string>>& dat, std::vector<std::strin
 int main(){
 
 	DecisionTree dt;
-	std::set<std::string> target_vals;
+	std::vector<std::string> target_values;
 	std::vector<std::string> attr_names;
 
 	// addTargetValues
-	target_vals.insert(">50K");
-	target_vals.insert("<=50K");
-	dt.addTargetValues(target_vals);
+	target_values.push_back(">50K");
+	target_values.push_back("<=50K");
+	dt.addTargetValues(target_values);
 
 	// addAttrInfo
 	std::vector<std::vector<std::string>> dat = Reader::readData("../data/adult_attr");
 	attrInfo(dat, attr_names, dt);
 
   // build
-  dt.build(getExamples("../data/adult_data", attr_names));
+  dt.build(getExamples("../data/adult_data_train", attr_names));
 
-  // obtain test data
+  // obtain prune data and prune
+  std::vector<Example> prune_data = getTestData(
+    "../data/adult_data_prune", attr_names, true);
+  dt.prune(prune_data);
+
+  // obtain test data and test
   std::vector<Example> test_data = getTestData(
     "../data/adult_test", attr_names, true);
-
-  /*
-  std::vector<Example> test_data = getTestData(
-    "../data/adult_test_no_unknown", attr_names, false);
-  */
-
-	std::cout << dt.test(test_data) << "\n";
+  std::cout << dt.test(test_data) << "\n";
 	return 0;
 }
