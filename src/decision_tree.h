@@ -171,7 +171,7 @@ class RandomForest : public DecisionTree{
 		int no_of_trees;
 
 		void build(std::vector<Example> train_data,
-	DecisionTreeNode*& p, std::vector<std::string> check_attr, int& nodes);
+	DecisionTreeNode*& p, std::vector<std::string> check_attr, ll& nodes);
 
 	public:
 		//Constructor that takes the number of trees in the forest

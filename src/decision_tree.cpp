@@ -607,7 +607,7 @@ void RandomForest::build(const std::vector<Example>& train_data){
 		for (auto it = pos_vals.begin(); it != pos_vals.end(); it++) {
 			all_attr.push_back(it -> first);
 		}
-		int nodes = 0;
+		ll nodes = 0;
 		std::vector<Example> v;
 		int x=rand()%train_data.size();
 		for(int i=0;i<x;i++){
