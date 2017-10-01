@@ -118,7 +118,7 @@ class DecisionTree {
 		void print();
 
 
-	private:
+	protected:
 		// used by pubic 'classify'
 		std::string classify(const Instance& inst, DecisionTreeNode *p);
 
@@ -159,5 +159,26 @@ class Reader {
 		static std::set <std::string> readTargetVal(std::string fileloc, int n);
 };
 
+class RandomForest : public DecisionTree{
+	private:
+		std::vector<DecisionTreeNode*> trees;
+
+		int no_of_trees;
+
+		void build(std::vector<Example> train_data,
+	DecisionTreeNode*& p, std::vector<std::string> check_attr, int& nodes);
+
+	public:
+		//Constructor that takes the number of trees in the forest
+		RandomForest(int no_of_trees);
+
+		void build(const std::vector<Example>& train_data);
+
+		std::string classify(const Instance& inst);
+
+		void print();
+
+		double test(const std::vector<Example>& test_data);
+};
 
 #endif
