@@ -172,11 +172,13 @@ void DecisionTree::build(std::vector<Example> train_data,
 			//std::cout << "unknown" << std::endl;
 			p -> setAttrName(target_values[0]);
 		} else {
+
 			std::map<std::string, ll> occ;
 			for (auto const& x: train_data) {
 				occ[x.getTargetClass()]++;
 			}
 			ll max = -1;
+
 			std::string target_val;
 			for (auto const& x: occ) {
 				if (x.second > max) {
@@ -588,4 +590,217 @@ std::set<std::string> Reader::readTargetVal(std::string fileloc, ll n){
 		}
 	}
 	return att;
+}
+
+RandomForest::RandomForest(int no_of_trees){
+	this->no_of_trees=no_of_trees;
+
+	trees=std::vector<DecisionTreeNode*>(no_of_trees);
+
+	srand(1);
+
+}
+
+void RandomForest::build(const std::vector<Example>& train_data){
+	for(int i=0;i<no_of_trees;i++){
+		std::vector<std::string> all_attr;
+		for (auto it = pos_vals.begin(); it != pos_vals.end(); it++) {
+			all_attr.push_back(it -> first);
+		}
+		int nodes = 0;
+		std::vector<Example> v;
+		int x=rand()%train_data.size();
+		for(int i=0;i<x;i++){
+			v.push_back(train_data[rand()%train_data.size()]);
+		}
+		build(v, trees[i], all_attr, nodes);
+	}
+}
+
+void RandomForest::build(std::vector<Example> train_data,
+	DecisionTreeNode*& p, std::vector<std::string> check_attr, ll& nodes) {
+
+	// check if there is any training data. if not assign a target class randomly
+	if (check_attr.empty()) {
+		p = new DecisionTreeNode;++nodes;
+		if (train_data.empty()) {
+			//std::cout << "unknown" << std::endl;
+			p -> setAttrName(target_values[0]);
+		} else {
+
+			std::map<std::string, ll> occ;
+			for (auto const& x: train_data) {
+				occ[x.getTargetClass()]++;
+			}
+			ll max = -1;
+
+			std::string target_val;
+			for (auto const& x: occ) {
+				if (x.second > max) {
+					max = x.second;
+					target_val = x.first;
+				}
+			}
+			p -> setAttrName(target_val);
+		}
+		p -> setType("leaf");
+		return;
+	}
+
+	if (train_data.empty()) {
+		p = new DecisionTreeNode;++nodes;
+		//std::cout << "train_data.size() == 0" << std::endl;
+		p -> setAttrName(target_values[0]);
+		p -> setType("leaf");
+		return;
+	}
+
+	// check if all examples have same target class
+	bool leaf = true;
+	std::string target_class = train_data[0].getTargetClass();
+	for (ll i = 1; i < train_data.size(); i++) {
+		if (train_data[i].getTargetClass() != target_class) {
+			leaf = false;
+			break;
+		}
+	}
+
+	if (leaf) {
+		p = new DecisionTreeNode;++nodes;
+		p -> setAttrName(target_class);
+		p -> setType("leaf");
+	} else {
+		double max_gain = -1;
+		ll max_index = 0;
+		std::vector<double> dividers;
+		bool is_cont;
+
+  int sqp=sqrt(check_attr.size());
+	std::vector<int> random_values;
+	for(int i=0;i<sqp;i++){
+		random_values.push_back(rand()%check_attr.size());
+	}
+
+	std::vector<std::string> check_attr_random;
+
+	for(int i=0;i<sqp;i++){
+		check_attr_random.push_back(check_attr[rand()%check_attr.size()]);
+	}
+    
+		// find which attribute should be at the node
+    for (ll i = 0; i < check_attr_random.size(); i++) {
+			if (pos_vals[check_attr_random[i]].size() == 0) {
+				// if continous attribute
+				std::pair<double, std::vector<double>>temp = contInfoGain(
+					train_data, check_attr_random[i]);
+				double cand_gain = temp.first;
+				if (cand_gain > max_gain) {
+					max_gain = cand_gain;
+					max_index = i;
+					is_cont = true;
+					dividers = temp.second;
+				}
+			} else {
+				double cand_gain = discInfoGain(train_data, check_attr_random[i], false);
+
+				if (cand_gain > max_gain) {
+					max_gain = cand_gain;
+					max_index = i;
+					is_cont = false;
+				}
+			}
+		}
+
+		// now, the attribute to be placed has been found
+    std::string attr_name = check_attr_random[max_index];
+    auto iterator_to_erase=check_attr.begin();
+    for(auto a=check_attr.begin();a!=check_attr.end();a++){
+    	if(*a==attr_name){
+    		iterator_to_erase=a;
+    		break;
+    	}
+    }
+
+    check_attr.erase(iterator_to_erase);
+
+
+    if (is_cont) {
+      p = new ContAttrDecisionTreeNode;++nodes;
+      p -> setType("continuous");
+      p -> setAttrName(attr_name);
+
+      ContAttrDecisionTreeNode *pp = static_cast<ContAttrDecisionTreeNode*>(p);
+      pp -> setDividers(dividers);
+
+      std::vector<std::vector<Example>> bins;
+      bins.resize(dividers.size() + 1);
+      for (ll i = 0; i < train_data.size(); i++) {
+      	bins[pp -> getIndex(std::stof(train_data[i][attr_name]))].push_back(train_data[i]);
+      }
+
+      // iterating through each child
+      for (ll i = 0; i <= dividers.size(); i++) {
+        build(bins[i], pp -> getChildPointer(i), check_attr, nodes);
+      }
+
+    } else {
+      discInfoGain(train_data, attr_name, true);
+
+      p = new DiscAttrDecisionTreeNode;++nodes;
+      p -> setType("discrete");
+      p -> setAttrName(attr_name);
+
+      DiscAttrDecisionTreeNode *pp = static_cast<DiscAttrDecisionTreeNode*>(p);
+
+      std::map<std::string, std::vector<Example>> bins;
+      for (ll i = 0; i < train_data.size(); i++) {
+      	bins[train_data[i][attr_name]].push_back(train_data[i]);
+      }
+
+			for (ll i = 0; i < pos_vals[attr_name].size(); i++) {
+				build(bins[pos_vals[attr_name][i]], (*pp)[pos_vals[attr_name][i]],
+					check_attr, nodes);
+			}
+		}
+	}
+}
+
+std::string RandomForest::classify(const Instance& inst) {
+	std::unordered_map<std::string,int> count;
+	for(auto a=target_values.begin();a!=target_values.end();a++){
+		count[*a]=0;
+	}
+	for(auto a=trees.begin();a!=trees.end();a++){
+		std::string s=DecisionTree::classify(inst, *a);
+		count[s]++;
+	}
+	std::string ans=count.begin()->first;
+	int max=count.begin()->second;
+	for(auto a=count.begin();a!=count.end();a++){
+		if(a->second>max){
+			ans=a->first;
+			max=a->second;
+		}
+	}
+	return ans;
+}
+
+void RandomForest::print() {
+	for(auto a=trees.begin();a!=trees.end();a++){
+		DecisionTree::print(*a);
+	}
+}
+
+double RandomForest::test(const std::vector<Example>& test_data) {
+
+	int correct = 0, wrong = 0;
+	for (int i = 0; i < test_data.size(); i++) {
+		Instance temp(test_data[i]);
+		if (classify(temp) == test_data[i].getTargetClass()) {
+			++correct;
+		} else {
+			++wrong;
+		}
+	}
+	return ((static_cast<double>(correct) / (wrong + correct)) * 100);
 }
