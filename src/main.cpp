@@ -1,7 +1,6 @@
 #include <bits/stdc++.h>
 #include "decision_tree.h"
 
-
 std::vector<Example> getExamples(const std::string& fileloc, const std::vector<std::string>& attr_names) {
 	std::vector<Example> ret;
 	std::vector<std::vector<std::string>> data = Reader::readData(fileloc);
@@ -49,9 +48,16 @@ std::vector<Example> getTestData(const std::string& fileloc,
 	return els;
 }
 
-void attrInfo(std::vector<std::vector<std::string>>& dat, std::vector<std::string>& attr_names, DecisionTree& dt){
+std::vector<std::string> getAttrNames(std::vector<std::vector<std::string>>& dat) {
+	std::vector<std::string> attr_names;
 	for (ll i = 0; i < dat.size(); i++) {
 		attr_names.push_back(dat[i][0]);
+	}
+	return attr_names;
+}
+
+void fillAttrInfo(std::vector<std::vector<std::string>>& dat, DecisionTree& dt){
+	for (ll i = 0; i < dat.size(); i++) {
 		std::vector<std::string> temp;
 		for (ll j = 1; j < dat[i].size(); j++) {
 			if (dat[i][j] == "continuous") {
@@ -66,30 +72,51 @@ void attrInfo(std::vector<std::vector<std::string>>& dat, std::vector<std::strin
 
 int main(){
 
-	DecisionTree dt;
 	std::vector<std::string> target_values;
 	std::vector<std::string> attr_names;
-
-	// addTargetValues
 	target_values.push_back(">50K");
 	target_values.push_back("<=50K");
-	dt.addTargetValues(target_values);
-
-	// addAttrInfo
+	
 	std::vector<std::vector<std::string>> dat = Reader::readData("../data/adult_attr");
-	attrInfo(dat, attr_names, dt);
+	attr_names = getAttrNames(dat);
+	
+	std::vector<Example> prune_data = getTestData("../data/adult_data_prune", attr_names, true);
+	std::vector<Example> test_data = getTestData("../data/adult_test", attr_names, true);
+	std::vector<Example> examples=getExamples("../data/adult_data_train", attr_names);
 
-  // build
-  dt.build(getExamples("../data/adult_data_train", attr_names));
+	DecisionTree dt;
+	
+	dt.addTargetValues(target_values);
+	
+	fillAttrInfo(dat, dt);
 
-  // obtain prune data and prune
-  std::vector<Example> prune_data = getTestData(
-    "../data/adult_data_prune", attr_names, true);
-  dt.prune(prune_data);
+	auto t1=std::time(NULL);
+	dt.build(examples);
+	auto t2=std::time(NULL);
 
-  // obtain test data and test
-  std::vector<Example> test_data = getTestData(
-    "../data/adult_test", attr_names, true);
-  std::cout << dt.test(test_data) << "\n";
+	std::cout<<"Task 1. ID3"<<"\n";
+	dt.printStats(test_data);
+	std::cout<<"Took "<<t2-t1<<" seconds"<<"\n\n";
+
+	t1=std::time(NULL);
+	dt.prune(prune_data);
+	t2=std::time(NULL);
+	
+	std::cout<<"Task 2. C4.5/Pruning"<<"\n";
+	dt.printStats(test_data);
+	std::cout<<"Took "<<t2-t1<<" seconds"<<"\n\n";
+
+	int i=50;
+	RandomForest rf(i);
+	rf.addTargetValues(target_values);
+	fillAttrInfo(dat, rf);
+
+	t1=std::time(NULL);
+	rf.build(examples);
+	t2=std::time(NULL);
+	std::cout<<"Task 3. Random Forests with "<<i<<" trees"<<"\n";
+	rf.printStats(test_data);
+	std::cout<<"Took "<<t2-t1<<" seconds"<<"\n";
+
 	return 0;
 }

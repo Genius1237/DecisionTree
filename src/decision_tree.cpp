@@ -459,85 +459,63 @@ std::pair<double, std::vector<double> > DecisionTree::contInfoGain(const std::ve
 		return make_pair(max_info_gain,temp);
 }
 
-double DecisionTree::discInfoGain(std::vector<Example>& els_ref, const std::string& attr_name, bool in_place){
-  if (in_place) {
-    std::vector<Example>& els = els_ref;
-    //       target_val ,      attr_val, cnt
-  	std::map<std::string, std::map<std::string, ll>> bins;
-  	for (ll i = 0; i < els.size(); i++) {
-  		if (els[i][attr_name] != missing_attr) {
-  			bins[els[i].getTargetClass()][els[i][attr_name]]++;
-  		}
-  	}
-
-  	// filling of missing vals
-  	for (ll i = 0; i < els.size(); i++) {
-  		if (els[i][attr_name] == missing_attr) {
-  			ll max = -1;
-  			std::string attr_val;
-  			for (auto const &x: bins[els[i].getTargetClass()]) {
-  				if (x.second > max) {
-  					max = x.second;
-  					attr_val = x.first;
-  				}
-  			}
-  			els[i].setAttrVal(attr_name, attr_val);
-  		}
-  	}
-    return 0;
-
-  } else {
-    std::vector<Example> els = els_ref;
-      //       target_val ,      attr_val, cnt
-    std::map<std::string, std::map<std::string, ll>> bins;
-    for (ll i = 0; i < els.size(); i++) {
-      if (els[i][attr_name] != missing_attr) {
-        bins[els[i].getTargetClass()][els[i][attr_name]]++;
-      }
+double DecisionTree::discInfoGain(std::vector<Example>& els, const std::string& attr_name, bool in_place){
+	//       target_val ,      attr_val, cnt
+  std::map<std::string, std::map<std::string, ll>> bins;
+  for (ll i = 0; i < els.size(); i++) {
+    if (els[i][attr_name] != missing_attr) {
+      bins[els[i].getTargetClass()][els[i][attr_name]]++;
     }
-
-    // filling of missing vals
-    for (ll i = 0; i < els.size(); i++) {
-      if (els[i][attr_name] == missing_attr) {
-        ll max = -1;
-        std::string attr_val;
-        for (auto const &x: bins[els[i].getTargetClass()]) {
-          if (x.second > max) {
-            max = x.second;
-            attr_val = x.first;
-          }
-        }
-        els[i].setAttrVal(attr_name, attr_val);
-      }
-    }
-
-    //        attr_val              target_val  occ
-    std::map<std::string, std::map<std::string, ll>> bins2;
-    for (ll i = 0; i < els.size(); i++) {
-      bins2[els[i][attr_name]][els[i].getTargetClass()] += 1;
-    }
-
-    //        target_val  occ
-    std::map<std::string, ll> temp;
-    for (ll i = 0; i < els.size(); i++) {
-      temp[els[i].getTargetClass()]++;
-    }
-
-    // info gain calculation
-    double ans1 = calcEntropy(temp);
-    //std::cout << attr_name << std::endl;
-    double ans2 = 0;
-    for (auto const &x: pos_vals[attr_name]) {
-      ll local_cnt = 0;
-      for (auto const &y: bins2[x]) {
-        local_cnt += y.second;
-      }
-      ans2 += (local_cnt * calcEntropy(bins2[x]));
-    }
-    ans2 /= els.size();
-    return ans1 - ans2;
   }
 
+  // filling of missing vals
+  std::vector<ll> missing;
+  for (ll i = 0; i < els.size(); i++) {
+    if (els[i][attr_name] == missing_attr) {
+      ll max = -1;
+      std::string attr_val;
+      for (auto const &x: bins[els[i].getTargetClass()]) {
+        if (x.second > max) {
+          max = x.second;
+          attr_val = x.first;
+        }
+      }
+      els[i].setAttrVal(attr_name, attr_val);
+      missing.push_back(i);
+    }
+  }
+	
+	//        attr_val              target_val  occ
+  std::map<std::string, std::map<std::string, ll>> bins2;
+  for (ll i = 0; i < els.size(); i++) {
+    bins2[els[i][attr_name]][els[i].getTargetClass()] += 1;
+  }
+
+  //        target_val  occ
+  std::map<std::string, ll> temp;
+  for (ll i = 0; i < els.size(); i++) {
+    temp[els[i].getTargetClass()]++;
+  }
+  
+	// info gain calculation
+  double ans1 = calcEntropy(temp);
+  //std::cout << attr_name << std::endl;
+  double ans2 = 0;
+  for (auto const &x: pos_vals[attr_name]) {
+    ll local_cnt = 0;
+    for (auto const &y: bins2[x]) {
+      local_cnt += y.second;
+    }
+    ans2 += (local_cnt * calcEntropy(bins2[x]));
+  }
+  ans2 /= els.size();
+  
+  if (!in_place) {
+	  for (ll i = 0; i < missing.size(); i++) {
+	  	els[missing[i]].setAttrVal(attr_name, "?");
+	  }
+  }
+  return ans1 - ans2;
 }
 
 double DecisionTree::calcEntropy(const std::map< std::string, ll>& els){
@@ -585,8 +563,8 @@ void DecisionTree::printStats(const std::vector<Example>& test_data){
 	double recall=(double)(tp)/((double)(tp+fn));
 	std::cout<<"Precision is "<<precision<<"\n";
 	std::cout<<"Recall is "<<recall<<"\n";
-	std::cout<<"Accuracy is"<<((static_cast<double>(correct) / (wrong + correct)) * 100)<<"\n";
-	std::cout<<"F-measure is"<<2/((1/precision)+(1/recall))<<"\n";
+	std::cout<<"Accuracy is "<<((static_cast<double>(correct) / (wrong + correct)) * 100)<<"\n";
+	std::cout<<"F-measure is "<<2/((1/precision)+(1/recall))<<"\n";
 }
 
 // -------------------- Data Extraction --------------------------------------
