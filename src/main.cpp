@@ -76,18 +76,18 @@ int main(){
 	std::vector<std::string> attr_names;
 	target_values.push_back(">50K");
 	target_values.push_back("<=50K");
-	
+
 	std::vector<std::vector<std::string>> dat = Reader::readData("../data/adult_attr");
 	attr_names = getAttrNames(dat);
-	
+
 	std::vector<Example> prune_data = getTestData("../data/adult_data_prune", attr_names, true);
 	std::vector<Example> test_data = getTestData("../data/adult_test", attr_names, true);
 	std::vector<Example> examples=getExamples("../data/adult_data_train", attr_names);
 
 	DecisionTree dt;
-	
+
 	dt.addTargetValues(target_values);
-	
+
 	fillAttrInfo(dat, dt);
 
 	auto t1=std::time(NULL);
@@ -101,7 +101,7 @@ int main(){
 	t1=std::time(NULL);
 	dt.prune(prune_data);
 	t2=std::time(NULL);
-	
+
 	std::cout<<"Task 2. C4.5/Pruning"<<"\n";
 	dt.printStats(test_data);
 	std::cout<<"Took "<<t2-t1<<" seconds"<<"\n\n";
