@@ -106,7 +106,7 @@ int main(){
 	dt.printStats(test_data);
 	std::cout<<"Took "<<t2-t1<<" seconds"<<"\n\n";
 
-	int i=50;
+	int i=5000;
 	RandomForest rf(i);
 	rf.addTargetValues(target_values);
 	fillAttrInfo(dat, rf);

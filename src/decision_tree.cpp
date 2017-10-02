@@ -620,10 +620,20 @@ void RandomForest::build(const std::vector<Example>& train_data){
 		}
 		ll nodes = 0;
 		std::vector<Example> v;
-		int x=rand()%train_data.size();
+		///*
+		//int x=rand()%train_data.size();
+		int x=sqrt(train_data.size());
 		for(int i=0;i<x;i++){
 			v.push_back(train_data[rand()%train_data.size()]);
 		}
+		//*/
+		/*
+		for(int i=0;i<train_data.size();i++){
+			if(rand()%2==0){
+				v.push_back(train_data[i]);
+			}
+		}
+		*/
 		build(v, trees[i], all_attr, nodes);
 	}
 }
