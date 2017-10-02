@@ -12,24 +12,39 @@ const std::string missing_attr= "?";
 class DecisionTreeNode {
 	public:
 		DecisionTreeNode();
+
+		// Sets 'this -> attr_name' to 'attr_name'
 		void setAttrName(const std::string& attr_name);
+
+		// Returns 'attr_name'
 		std::string getAttrName();
+
+		// Sets 'this -> type' to 'type'
 		void setType(const std::string& type);
+
+		// Returns 'type'
 		std::string getType();
-		void setMaxTargetVal(const std::string& target_val);
+
+		// Sets 'this -> max_target_val' to 'target_val'
+		void setMaxTargetVal(const std::string& max_target_val);
+
+		// Returns 'max_target_val'
 		std::string getMaxTargetVal();
 	protected:
 		std::string attr_name; // if type is 'leaf' then this will be a target value
 		std::string type; // one of 'discrete', 'continuous' and 'leaf'
-		std::string max_target_val;
+		std::string max_target_val; // max occuring target value
 };
 
 class DiscAttrDecisionTreeNode: public DecisionTreeNode {
 	public:
 		DiscAttrDecisionTreeNode();
 
+		// Returns pointer to the child that corresponds to 'attr_val'
 		// attr_val must be a possible value of attr_name
 		DecisionTreeNode*& operator[](const std::string& attr_val);
+
+		// Returns all child pointers of the current node
 		std::pair<std::vector<std::string>, std::vector<DecisionTreeNode*>> getChildPointers();
 	private:
 		std::unordered_map<std::string, DecisionTreeNode*> child;
@@ -39,16 +54,20 @@ class ContAttrDecisionTreeNode: public DecisionTreeNode {
 	public:
 		ContAttrDecisionTreeNode();
 
+		// Returns pointer to the child that corresponds to 'attr_val'
 		DecisionTreeNode*& operator[](const double& attr_val);
 
-		// this must be called before using operator[]
+		// Sets 'this -> dividers' to 'dividers'
+		// This must be called before using operator[]
 		void setDividers(const std::vector<double>& dividers);
 
-		// return value 'r' is such that attr_val will belong to child[r]
+		// Returns value 'r' such that 'attr_val' will belong to 'child[r]'
 		int getIndex(const double& attr_val);
 
+		// Returns pointers to all children of the current node
 		std::vector<DecisionTreeNode*> getChildPointers();
 
+		// Returns child corresponding to index 'index' (which is child[index])
 		DecisionTreeNode*& getChildPointer(const int& index);
 	private:
 		std::vector<double> dividers;
@@ -61,17 +80,18 @@ class Instance {
 	public:
 		Instance();
 
+		// Creates an instance of 'Instance' from an instance of 'Example'
 		Instance(const Example& exmp);
 
-		// Precondition: Size of 'attr_names' qual to size of 'attr_vals'
+		// Creates an instance of 'Instance' by associating corresponding elements from
+		//'attr_names' and 'attr_vals' with each other
 		Instance(
 			const std::vector<std::string>& attr_names, const std::vector<std::string>& attr_vals);
 
-		// Used to access value of a particular attribute
+		// Used to access value corresponding to the attribute 'attr_name'
     std::string operator[](const std::string& attr_name) const;
 
-    //std::string& operator[](const std::string& attr_name);
-
+    // Associates the value 'attr_val' to the attribute name 'attr_name'
     void setAttrVal(const std::string& attr_name, const std::string& attr_val);
 
 		friend std::ostream& operator<<(std::ostream& out, const Instance& inst);
@@ -84,11 +104,14 @@ class Example: public Instance {
 	public:
 		Example();
 
-		// Precondition: Size of 'attr_names' qual to size of 'attr_vals'
+		// Creates an instance of 'Instance' by associating corresponding elements from
+		//'attr_names' and 'attr_vals' with each other. Also assigns 'this -> target_class'
+		// to 'target_class'
 		Example(
 			const std::vector<std::string>& attr_names, const std::vector<std::string>& attr_vals,
 			const std::string& target_class);
 
+		// Returns 'target_class'
 		std::string getTargetClass() const;
 
 	private:
@@ -104,28 +127,33 @@ class DecisionTree {
 		// Used to populate 'target_values'
 		void addTargetValues(const std::vector<std::string>& target_values);
 
+		// Builds the tree using the training data 'train_data'
 		// 'addAttrInfo' and 'addTargetValues' must be used before calling
 		// this function
 		void build(const std::vector<Example>& train_data);
 
+		// Prunes the tree using the pruning data 'prune_data'
 		// 'build' must be called before calling this function
 		void prune(const std::vector<Example>& prune_data);
 
+		// Returns the accuracy by testing the tree with 'test_data'
 		// 'build' must be called before calling this function
 		double test(const std::vector<Example>& test_data);
 
-		// Returns the target value given to the instance 'inst' using the
+		// Returns the target value assigned to the instance 'inst' using the
 		// already built decision tree
 		std::string classify(const Instance& inst);
 
+		// Prints the preorder traversal of the tree
 		void print();
 
 		void printStats(const std::vector<Example>& test_data);
 
 	protected:
+		// Prunes the tree rooted at 'p' using the pruning data 'prune_data'
 		int prune(DecisionTreeNode* p, std::vector<Example> prune_data);
 
-		// used by pubic 'classify'
+		// Classifies the instance 'inst' using the tree rooted at 'p'
 		std::string classify(const Instance& inst, DecisionTreeNode *p);
 
 		// Used by public 'build'
@@ -146,6 +174,7 @@ class DecisionTree {
 		// (target value, num of occurrences of that target value)
 		double calcEntropy(const std::map<std::string, int>& els);
 
+		// Prints the tree rooted at 'p'
 		void print(DecisionTreeNode *p);
 
 		// key is attribute
@@ -160,7 +189,7 @@ class DecisionTree {
 
 class Reader {
 	public:
-		// file name and number of attributes
+		// Returns data read from the file 'fileloc'
 		static std::vector<std::vector<std::string> > readData(std::string fileloc);
 		static std::set <std::string> readTargetVal(std::string fileloc, int n);
 };

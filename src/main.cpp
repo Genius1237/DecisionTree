@@ -1,22 +1,20 @@
 #include <bits/stdc++.h>
 #include "decision_tree.h"
 
-std::vector<Example> getExamples(const std::string& fileloc, const std::vector<std::string>& attr_names) {
-	std::vector<Example> ret;
+// Returns a list of 'Example's from the file 'fileloc' assuming that the
+// attributes are 'attr_names'
+// If 'fill_unknown' is true then all missing attribute values are filled
+std::vector<Example> getData(const std::string& fileloc,
+	const std::vector<std::string>& attr_names, bool fill_unknown) {
+
+	std::vector<Example> els;
 	std::vector<std::vector<std::string>> data = Reader::readData(fileloc);
 	for (int i = 0; i < data.size(); i++) {
 		std::string target_value = data[i][data[i].size() - 2];
 		data[i].pop_back();
 		data[i].pop_back();
-		ret.push_back(Example(attr_names, data[i], target_value));
+		els.push_back(Example(attr_names, data[i], target_value));
 	}
-	return ret;
-}
-
-std::vector<Example> getTestData(const std::string& fileloc,
-	const std::vector<std::string>& attr_names, bool fill_unknown) {
-
-	std::vector<Example> els = getExamples(fileloc, attr_names);
 
  	if (fill_unknown) {
 	  for (auto const& attr_name: attr_names) {
@@ -44,11 +42,11 @@ std::vector<Example> getTestData(const std::string& fileloc,
 			}
 		}
  	}
-
 	return els;
 }
 
-std::vector<std::string> getAttrNames(std::vector<std::vector<std::string>>& dat) {
+// Returns attribute names from 'dat' which is obtained using 'Reader::readData'
+std::vector<std::string> getAttrNames(const std::vector<std::vector<std::string>>& dat) {
 	std::vector<std::string> attr_names;
 	for (int i = 0; i < dat.size(); i++) {
 		attr_names.push_back(dat[i][0]);
@@ -56,7 +54,9 @@ std::vector<std::string> getAttrNames(std::vector<std::vector<std::string>>& dat
 	return attr_names;
 }
 
-void fillAttrInfo(std::vector<std::vector<std::string>>& dat, DecisionTree& dt){
+// Fills attribute info in the decision tree 'dt' given data 'dat' obtained
+// 'Reader::readData'
+void fillAttrInfo(const std::vector<std::vector<std::string>>& dat, DecisionTree& dt){
 	for (int i = 0; i < dat.size(); i++) {
 		std::vector<std::string> temp;
 		for (int j = 1; j < dat[i].size(); j++) {
@@ -71,7 +71,6 @@ void fillAttrInfo(std::vector<std::vector<std::string>>& dat, DecisionTree& dt){
 }
 
 int main(){
-
 	std::vector<std::string> target_values;
 	std::vector<std::string> attr_names;
 	target_values.push_back(">50K");
@@ -80,9 +79,10 @@ int main(){
 	std::vector<std::vector<std::string>> dat = Reader::readData("../data/adult_attr");
 	attr_names = getAttrNames(dat);
 
-	std::vector<Example> prune_data = getTestData("../data/adult_data_prune", attr_names, true);
-	std::vector<Example> test_data = getTestData("../data/adult_test", attr_names, true);
-	std::vector<Example> examples=getExamples("../data/adult_data_train", attr_names);
+	std::vector<Example> prune_data = getData("../data/adult_data_prune", attr_names, true);
+	std::vector<Example> test_data = getData("../data/adult_test", attr_names, true);
+	std::vector<Example> examples=getData("../data/adult_data_train", attr_names, false);
+	std::vector<Example> rfexamples=getData("../data/adult_data", attr_names, false);
 
 	DecisionTree dt;
 
@@ -106,13 +106,13 @@ int main(){
 	dt.printStats(test_data);
 	std::cout<<"Took "<<t2-t1<<" seconds"<<"\n\n";
 
-	int i=5000;
+	int i=500;
 	RandomForest rf(i);
 	rf.addTargetValues(target_values);
 	fillAttrInfo(dat, rf);
 
 	t1=std::time(NULL);
-	rf.build(examples);
+	rf.build(rfexamples);
 	t2=std::time(NULL);
 	std::cout<<"Task 3. Random Forests with "<<i<<" trees"<<"\n";
 	rf.printStats(test_data);

@@ -28,8 +28,8 @@ std::string DecisionTreeNode::getType() {
 	return type;
 }
 
-void DecisionTreeNode::setMaxTargetVal(const std::string& target_val) {
-	max_target_val = target_val;
+void DecisionTreeNode::setMaxTargetVal(const std::string& max_target_val) {
+	this -> max_target_val = max_target_val;
 }
 
 std::string DecisionTreeNode::getMaxTargetVal() {
