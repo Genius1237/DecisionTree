@@ -112,7 +112,7 @@ int main(){
 	fillAttrInfo(dat, rf);
 
 	t1=std::time(NULL);
-	rf.build(rfexamples);
+	rf.build(examples);
 	t2=std::time(NULL);
 	std::cout<<"Task 3. Random Forests with "<<i<<" trees"<<"\n";
 	rf.printStats(test_data);
