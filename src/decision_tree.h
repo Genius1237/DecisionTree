@@ -18,9 +18,12 @@ class DecisionTreeNode {
 		std::string getAttrName();
 		void setType(const std::string& type);
 		std::string getType();
+		void setMaxTargetVal(const std::string& target_val);
+		std::string getMaxTargetVal();
 	protected:
 		std::string attr_name; // if type is 'leaf' then this will be a target value
 		std::string type; // one of 'discrete', 'continuous' and 'leaf'
+		std::string max_target_val;
 };
 
 class DiscAttrDecisionTreeNode: public DecisionTreeNode {
@@ -123,7 +126,7 @@ class DecisionTree {
 
 	protected:
 		ll prune(DecisionTreeNode* p, std::vector<Example> prune_data);
-  
+
 		// used by pubic 'classify'
 		std::string classify(const Instance& inst, DecisionTreeNode *p);
 
