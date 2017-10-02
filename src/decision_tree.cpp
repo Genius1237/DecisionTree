@@ -617,6 +617,8 @@ void RandomForest::build(const std::vector<Example>& train_data){
 		}
 		int nodes = 0;
 		std::vector<Example> v;
+		
+		//Randomly selects sqrt(no of training examples) examples for each tree
 		///*
 		//int x=rand()%train_data.size();
 		int x=sqrt(train_data.size());
@@ -693,6 +695,7 @@ void RandomForest::build(std::vector<Example> train_data,
 		std::vector<double> dividers;
 		bool is_cont;
 
+	//Randomly selects sqrt(no_of_attributes) attributes
   int sqp=sqrt(check_attr.size());
 	std::vector<int> random_values;
 	for(int i=0;i<sqp;i++){
@@ -700,7 +703,6 @@ void RandomForest::build(std::vector<Example> train_data,
 	}
 
 	std::vector<std::string> check_attr_random;
-
 	for(int i=0;i<sqp;i++){
 		check_attr_random.push_back(check_attr[rand()%check_attr.size()]);
 	}
@@ -738,7 +740,7 @@ void RandomForest::build(std::vector<Example> train_data,
     		break;
     	}
     }
-
+    //Removes selected attribute
     check_attr.erase(iterator_to_erase);
 
 
@@ -784,14 +786,18 @@ void RandomForest::build(std::vector<Example> train_data,
 }
 
 std::string RandomForest::classify(const Instance& inst) {
+	//count maintains how many instances are classified to a particular target class by the trees
 	std::unordered_map<std::string,int> count;
 	for(auto a=target_values.begin();a!=target_values.end();a++){
 		count[*a]=0;
 	}
+	//count is calculated
 	for(auto a=trees.begin();a!=trees.end();a++){
 		std::string s=DecisionTree::classify(inst, *a);
 		count[s]++;
 	}
+
+	//Finds the class that is classified to the most
 	std::string ans=count.begin()->first;
 	int max=count.begin()->second;
 	for(auto a=count.begin();a!=count.end();a++){
@@ -824,6 +830,8 @@ double RandomForest::test(const std::vector<Example>& test_data) {
 }
 
 void RandomForest::printStats(const std::vector<Example>& test_data){
+	
+	//Calculates true positives,true negatives, flase positives,false negatives and then calculates precision and recall
 	int tp=0,fp=0,tn=0,fn=0;
 	int correct=0,wrong=0;
 	for(int i=0;i<test_data.size();i++){

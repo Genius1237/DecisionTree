@@ -196,10 +196,13 @@ class Reader {
 
 class RandomForest : public DecisionTree{
 	private:
+		//Vector of tree pointers
 		std::vector<DecisionTreeNode*> trees;
 
+		//No of trees in the forest
 		int no_of_trees;
 
+		//Private function. Called reursively for build
 		void build(std::vector<Example> train_data,
 	DecisionTreeNode*& p, std::vector<std::string> check_attr, int& nodes);
 
@@ -207,14 +210,18 @@ class RandomForest : public DecisionTree{
 		//Constructor that takes the number of trees in the forest
 		RandomForest(int no_of_trees);
 
+		//Public function for build
 		void build(const std::vector<Example>& train_data);
 
+		//Function which classifies an instance
 		std::string classify(const Instance& inst);
 
 		void print();
 
+		//Test
 		double test(const std::vector<Example>& test_data);
 
+		//Prints statistics for the test data
 		void printStats(const std::vector<Example>& test_data);
 
 };
