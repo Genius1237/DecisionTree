@@ -7,8 +7,6 @@
 #include <set>
 #include <map>
 
-typedef long long ll;
-
 const std::string missing_attr= "?";
 
 class DecisionTreeNode {
@@ -47,11 +45,11 @@ class ContAttrDecisionTreeNode: public DecisionTreeNode {
 		void setDividers(const std::vector<double>& dividers);
 
 		// return value 'r' is such that attr_val will belong to child[r]
-		ll getIndex(const double& attr_val);
+		int getIndex(const double& attr_val);
 
 		std::vector<DecisionTreeNode*> getChildPointers();
 
-		DecisionTreeNode*& getChildPointer(const ll& index);
+		DecisionTreeNode*& getChildPointer(const int& index);
 	private:
 		std::vector<double> dividers;
 		std::vector<DecisionTreeNode*> child;
@@ -125,14 +123,14 @@ class DecisionTree {
 		void printStats(const std::vector<Example>& test_data);
 
 	protected:
-		ll prune(DecisionTreeNode* p, std::vector<Example> prune_data);
+		int prune(DecisionTreeNode* p, std::vector<Example> prune_data);
 
 		// used by pubic 'classify'
 		std::string classify(const Instance& inst, DecisionTreeNode *p);
 
 		// Used by public 'build'
 		void build(std::vector<Example> train_data, DecisionTreeNode*& p,
-			std::vector<std::string> check_attr, ll& nodes);
+			std::vector<std::string> check_attr, int& nodes);
 
 		// Returns information gain
 		// 'attr_name' must be a discrete-valued attribute
@@ -146,7 +144,7 @@ class DecisionTree {
 
 		// Returns entropy given a map
 		// (target value, num of occurrences of that target value)
-		double calcEntropy(const std::map<std::string, ll>& els);
+		double calcEntropy(const std::map<std::string, int>& els);
 
 		void print(DecisionTreeNode *p);
 
@@ -164,7 +162,7 @@ class Reader {
 	public:
 		// file name and number of attributes
 		static std::vector<std::vector<std::string> > readData(std::string fileloc);
-		static std::set <std::string> readTargetVal(std::string fileloc, ll n);
+		static std::set <std::string> readTargetVal(std::string fileloc, int n);
 };
 
 class RandomForest : public DecisionTree{
@@ -174,7 +172,7 @@ class RandomForest : public DecisionTree{
 		int no_of_trees;
 
 		void build(std::vector<Example> train_data,
-	DecisionTreeNode*& p, std::vector<std::string> check_attr, ll& nodes);
+	DecisionTreeNode*& p, std::vector<std::string> check_attr, int& nodes);
 
 	public:
 		//Constructor that takes the number of trees in the forest

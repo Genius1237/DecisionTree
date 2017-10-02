@@ -4,7 +4,7 @@
 std::vector<Example> getExamples(const std::string& fileloc, const std::vector<std::string>& attr_names) {
 	std::vector<Example> ret;
 	std::vector<std::vector<std::string>> data = Reader::readData(fileloc);
-	for (ll i = 0; i < data.size(); i++) {
+	for (int i = 0; i < data.size(); i++) {
 		std::string target_value = data[i][data[i].size() - 2];
 		data[i].pop_back();
 		data[i].pop_back();
@@ -21,17 +21,17 @@ std::vector<Example> getTestData(const std::string& fileloc,
  	if (fill_unknown) {
 	  for (auto const& attr_name: attr_names) {
 		  //       target_val ,      attr_val, cnt
-			std::map<std::string, std::map<std::string, ll>> bins;
-			for (ll i = 0; i < els.size(); i++) {
+			std::map<std::string, std::map<std::string, int>> bins;
+			for (int i = 0; i < els.size(); i++) {
 				if (els[i][attr_name] != missing_attr) {
 					bins[els[i].getTargetClass()][els[i][attr_name]]++;
 				}
 			}
 
 			// filling of missing vals
-			for (ll i = 0; i < els.size(); i++) {
+			for (int i = 0; i < els.size(); i++) {
 				if (els[i][attr_name] == missing_attr) {
-					ll max = -1;
+					int max = -1;
 					std::string attr_val;
 					for (auto const &x: bins[els[i].getTargetClass()]) {
 						if (x.second > max) {
@@ -50,16 +50,16 @@ std::vector<Example> getTestData(const std::string& fileloc,
 
 std::vector<std::string> getAttrNames(std::vector<std::vector<std::string>>& dat) {
 	std::vector<std::string> attr_names;
-	for (ll i = 0; i < dat.size(); i++) {
+	for (int i = 0; i < dat.size(); i++) {
 		attr_names.push_back(dat[i][0]);
 	}
 	return attr_names;
 }
 
 void fillAttrInfo(std::vector<std::vector<std::string>>& dat, DecisionTree& dt){
-	for (ll i = 0; i < dat.size(); i++) {
+	for (int i = 0; i < dat.size(); i++) {
 		std::vector<std::string> temp;
-		for (ll j = 1; j < dat[i].size(); j++) {
+		for (int j = 1; j < dat[i].size(); j++) {
 			if (dat[i][j] == "continuous") {
 				break;
 			} else {
