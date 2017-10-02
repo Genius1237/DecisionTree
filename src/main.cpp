@@ -83,6 +83,7 @@ int main(){
 	std::vector<Example> prune_data = getTestData("../data/adult_data_prune", attr_names, true);
 	std::vector<Example> test_data = getTestData("../data/adult_test", attr_names, true);
 	std::vector<Example> examples=getExamples("../data/adult_data_train", attr_names);
+	std::vector<Example> rfexamples=getExamples("../data/adult_data", attr_names);
 
 	DecisionTree dt;
 
@@ -106,13 +107,13 @@ int main(){
 	dt.printStats(test_data);
 	std::cout<<"Took "<<t2-t1<<" seconds"<<"\n\n";
 
-	int i=5000;
+	int i=500;
 	RandomForest rf(i);
 	rf.addTargetValues(target_values);
 	fillAttrInfo(dat, rf);
 
 	t1=std::time(NULL);
-	rf.build(examples);
+	rf.build(rfexamples);
 	t2=std::time(NULL);
 	std::cout<<"Task 3. Random Forests with "<<i<<" trees"<<"\n";
 	rf.printStats(test_data);
